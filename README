@@ -1,0 +1,24 @@
+ntpstats-graphite is an tool to push ntpd statistics to `Graphite <http://graphite.readthedocs.org/>`.
+
+Dependencies
+-----------
+
+- pyinotify
+
+Quick start
+-----------
+
+# ntpstats-graphite-poller -h
+Usage: ntpstats-graphite-poller [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -P PATH, --path=PATH  ntpstats directory, Default: /var/log/ntpstats
+  -d, --debug           Debug, Default: False
+  -p PREFIX, --prefix=PREFIX
+                        Graphite prefix, Default: ntpstats
+
+
+ # export CARBON_SERVER=graphite_server
+ # export CARBON_PORT=2003
+ # ntpstats-graphite-poller -p graphite.prefix -P /path/to/ntpstats -d
