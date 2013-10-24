@@ -68,7 +68,8 @@ def loopstats(string, prefix, debug):
 def peerstats(string, prefix, debug):
     '''Parse peerstats statistics'''
     peerstats_dict = stats_to_dict(string, config.peerstats_list)
-    peerstats_dict['statusWord'] = get_peer_tallycode(peerstats_dict['statusWord'])
+    tallycode = get_peer_tallycode(peerstats_dict['statusWord'])
+    peerstats_dict['statusWord'] = tallycode
     peer = peerstats_dict.pop('sourceAddress').replace('.', '-')
     prefix += '.' + '.'.join(['peerstats', peer])
     to_send = dict_to_carbon(peerstats_dict, prefix, debug)
