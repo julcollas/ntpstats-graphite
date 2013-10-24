@@ -15,6 +15,16 @@ def mjd_to_timestamp(mjd, pastmidnight):
     return timestamp
 
 
+def get_peer_tallycode(statusWord):
+    '''Get the tally code from the Peer Status Word
+    ref: http://www.eecis.udel.edu/~mills/ntp/html/decode.html'''
+    sw_hex = int(statusWord, 16)
+    sw_bin = bin(sw_hex)[2:]
+    sw_tally = sw_bin[5:8]
+    tally_bin = int(sw_tally, 2)
+    return tally_bin
+
+
 def stats_to_dict(string, input_list):
     '''Return a dict from a single ntpstats line and a matching list'''
     ret_val = False
@@ -58,7 +68,7 @@ def loopstats(string, prefix, debug):
 def peerstats(string, prefix, debug):
     '''Parse peerstats statistics'''
     peerstats_dict = stats_to_dict(string, config.peerstats_list)
-    peerstats_dict.pop('statusWord')
+    peerstats_dict['statusWord'] = get_peer_tallycode(peerstats_dict['statusWord'])
     peer = peerstats_dict.pop('sourceAddress').replace('.', '-')
     prefix += '.' + '.'.join(['peerstats', peer])
     to_send = dict_to_carbon(peerstats_dict, prefix, debug)
