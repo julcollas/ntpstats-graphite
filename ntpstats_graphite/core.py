@@ -49,23 +49,23 @@ def dict_to_carbon(stats_dict, prefix):
     return lines
 
 
-def send_msg(message):
+def send_msg(message,server,port):
     '''Send message to carbon'''
     sock = socket.socket()
-    sock.connect((config.CARBON_SERVER, int(config.CARBON_PORT)))
+    sock.connect((server,port))
     sock.sendall(message)
     sock.close()
 
 
-def loopstats(string, prefix):
+def loopstats(string, prefix, server, port):
     '''Parse loopstats statistics'''
     prefix += '.loopstats'
     loopstats_dict = stats_to_dict(string, config.loopstats_list)
     to_send = dict_to_carbon(loopstats_dict, prefix)
-    send_msg('\n'.join(to_send) + '\n')
+    send_msg('\n'.join(to_send) + '\n',server,port)
 
 
-def peerstats(string, prefix):
+def peerstats(string, prefix, server, port):
     '''Parse peerstats statistics'''
     peerstats_dict = stats_to_dict(string, config.peerstats_list)
     tallycode = get_peer_tallycode(peerstats_dict['statusWord'])
@@ -73,25 +73,25 @@ def peerstats(string, prefix):
     peer = peerstats_dict.pop('sourceAddress').replace('.', '-')
     prefix += '.' + '.'.join(['peerstats', peer])
     to_send = dict_to_carbon(peerstats_dict, prefix)
-    send_msg('\n'.join(to_send) + '\n')
+    send_msg('\n'.join(to_send) + '\n',server,port)
 
 
-def rawstats(string, prefix):
+def rawstats(string, prefix, server, port):
     '''Parse rawstats statistics'''
     rawstats_dict = stats_to_dict(string, config.rawstats_list)
     rawstats_dict.pop('destinationAddress')
     source = rawstats_dict.pop('sourceAddress').replace('.', '-')
     prefix += '.' + '.'.join(['rawstats', source])
     to_send = dict_to_carbon(rawstats_dict, prefix)
-    send_msg('\n'.join(to_send) + '\n')
+    send_msg('\n'.join(to_send) + '\n',server,port)
 
 
-def sysstats(string, prefix):
+def sysstats(string, prefix, server, port):
     '''Parse sysstats statistics'''
     prefix += '.sysstats'
     sysstats_dict = stats_to_dict(string, config.sysstats_list)
     to_send = dict_to_carbon(sysstats_dict, prefix)
-    send_msg('\n'.join(to_send) + '\n')
+    send_msg('\n'.join(to_send) + '\n',server,port)
 
 
 class EventProcessor(pyinotify.ProcessEvent):

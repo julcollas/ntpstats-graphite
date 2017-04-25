@@ -7,12 +7,16 @@ import os.path
 @click.group()
 @click.option('--debug/--no-debug',default=False,help='debugging output')
 @click.option('--prefix',default="ntpstats",help="Graphite prefix")
+@click.option('--server',default='localhost',help='carbon server address')
+@click.option('--port',default=2003,help='carbon server port')
 @click.pass_context
-def cli(ctx,debug,prefix):
+def cli(ctx,debug,prefix,server,port):
     if debug:
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
+    ctx.obj['server'] = server
+    ctx.obj['port'] = port
     ctx.obj['prefix'] = prefix
 
 @cli.command()
@@ -36,16 +40,16 @@ def inotify(ctx,path,prefix):
 def oneshot(ctx,loopstats,peerstats,rawstats,sysstats):
     if os.path.exists(loopstats):
         with open(loopstats,'r') as f:
-            [ core.loopstats(line,ctx.obj['prefix']) for line in f.readlines()]
+            [ core.loopstats(line,ctx.obj['prefix'],ctx.obj['server'],ctx.obj['port']) for line in f.readlines()]
     if os.path.exists(peerstats):
         with open(peerstats,'r') as f:
-            [ core.peerstats(line,ctx.obj['prefix']) for line in f.readlines()]
+            [ core.peerstats(line,ctx.obj['prefix'],ctx.obj['server'],ctx.obj['port']) for line in f.readlines()]
     if os.path.exists(rawstats):
         with open(rawstats,'r') as f:
-            [ core.rawstats(line,ctx.obj['prefix']) for line in f.readlines()]
+            [ core.rawstats(line,ctx.obj['prefix'],ctx.obj['server'],ctx.obj['port']) for line in f.readlines()]
     if os.path.exists(sysstats):
         with open(sysstats,'r') as f:
-            [ core.sysstats(line,ctx.obj['prefix']) for line in f.readlines()]
+            [ core.sysstats(line,ctx.obj['prefix'],ctx.obj['server'],ctx.obj['port']) for line in f.readlines()]
 
 def main():
     cli(obj={})
