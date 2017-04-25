@@ -29,8 +29,8 @@ def get_peer_tallycode(statusWord):
 def stats_to_dict(string, input_list):
     '''Return a dict from a single ntpstats line and a matching list'''
     ret_val = False
-    if len(string.split(' ')) == len(input_list):
-        ret_val = dict(zip(input_list, string.split(' ')))
+    if len(string.split(' ')) >= len(input_list):
+        ret_val = dict(zip(input_list, string.split(' ')[:len(input_list)]))
     return ret_val
 
 
