@@ -1,22 +1,30 @@
 #!/usr/bin/env python
 from ntpstats_graphite import core
-from optparse import OptionParser
+import click
+import logging
+
+@click.group()
+@click.option('--debug/--no-debug',default=False,help='debugging output')
+@click.option('--prefix',default="ntpstats",help="Graphite prefix")
+@click.pass_context
+def cli(ctx,debug,prefix):
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    ctx.obj['prefix'] = prefix
+
+@cli.command()
+@click.option('--path',default="/var/log/ntpstats/",
+               type=click.Path(exists=True,readable=True),
+               help="Path to ntpstats directory")
+@click.pass_context
+def inotify(ctx,path,prefix):
+    core.process(path=path,prefix=ctx.obj['prefix'])
 
 
-def run():
-    parser = OptionParser()
-    parser.add_option('-P', '--path',
-                      default='/var/log/ntpstats',
-                      help="ntpstats directory, Default: %default")
-    parser.add_option('-d', '--debug',
-                      default='False', action='store_true',
-                      help="Debug, Default: %default")
-    parser.add_option('-p', '--prefix',
-                      default='ntpstats',
-                      help="Graphite prefix, Default: %default")
+def main():
+    cli(obj={})
 
-    (options, args) = parser.parse_args()
-
-    core.process(path=options.path,
-                 debug=options.debug,
-                 prefix=options.prefix)
+if __name__ == '__main__':
+    main()
