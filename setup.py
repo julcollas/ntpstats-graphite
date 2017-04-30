@@ -12,7 +12,8 @@ setup(
     description='Send ntpstats to Graphite',
     keywords='ntp graphite',
     author='Julien',
-    entry_points={'console_scripts':
-        ['ntpstats-graphite-poller = ntpstats_graphite.cli:main']},
-    install_requires=['pyinotify','click'],
+    entry_points={
+        'console_scripts': ['ntpstats-graphite-poller = ntpstats_graphite.cli:main']
+    },
+    install_requires=['pyinotify', 'click'],
 )

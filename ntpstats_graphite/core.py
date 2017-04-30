@@ -8,7 +8,7 @@ import logging
 
 
 def mjd_to_timestamp(mjd, pastmidnight):
-    '''Convert ntp MJD time to unix timestamp'''
+    """Convert ntp MJD time to unix timestamp"""
     now = datetime.datetime.now()
     midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
     date = midnight + datetime.timedelta(0, float(pastmidnight))
@@ -16,10 +16,10 @@ def mjd_to_timestamp(mjd, pastmidnight):
     return timestamp
 
 
-def get_peer_tallycode(statusWord):
-    '''Get the tally code from the Peer Status Word
-    ref: http://www.eecis.udel.edu/~mills/ntp/html/decode.html'''
-    sw_hex = int(statusWord, 16)
+def get_peer_tallycode(statusword):
+    """Get the tally code from the Peer Status Word
+    ref: http://www.eecis.udel.edu/~mills/ntp/html/decode.html"""
+    sw_hex = int(statusword, 16)
     sw_bin = bin(sw_hex)[2:]
     sw_tally = sw_bin[5:8]
     tally_bin = int(sw_tally, 2)
@@ -27,7 +27,7 @@ def get_peer_tallycode(statusWord):
 
 
 def stats_to_dict(string, input_list):
-    '''Return a dict from a single ntpstats line and a matching list'''
+    """Return a dict from a single ntpstats line and a matching list"""
     ret_val = False
     if len(string.split(' ')) >= len(input_list):
         ret_val = dict(zip(input_list, string.split(' ')[:len(input_list)]))
@@ -35,7 +35,7 @@ def stats_to_dict(string, input_list):
 
 
 def dict_to_carbon(stats_dict, prefix):
-    '''Return a formated carbon input from a dict and prefix'''
+    """Return a formated carbon input from a dict and prefix"""
     date = stats_dict.pop('date')
     timePastMidnight = stats_dict.pop('timePastMidnight')
     timestamp = mjd_to_timestamp(date, timePastMidnight)
@@ -49,49 +49,49 @@ def dict_to_carbon(stats_dict, prefix):
     return lines
 
 
-def send_msg(message,server,port):
-    '''Send message to carbon'''
+def send_msg(message, server, port):
+    """Send message to carbon"""
     sock = socket.socket()
-    sock.connect((server,port))
+    sock.connect((server, port))
     sock.sendall(message)
     sock.close()
 
 
 def loopstats(string, prefix, server, port):
-    '''Parse loopstats statistics'''
+    """Parse loopstats statistics"""
     prefix += '.loopstats'
     loopstats_dict = stats_to_dict(string, config.loopstats_list)
     to_send = dict_to_carbon(loopstats_dict, prefix)
-    send_msg('\n'.join(to_send) + '\n',server,port)
+    send_msg('\n'.join(to_send) + '\n', server, port)
 
 
 def peerstats(string, prefix, server, port):
-    '''Parse peerstats statistics'''
+    """Parse peerstats statistics"""
     peerstats_dict = stats_to_dict(string, config.peerstats_list)
     tallycode = get_peer_tallycode(peerstats_dict['statusWord'])
     peerstats_dict['statusWord'] = tallycode
     peer = peerstats_dict.pop('sourceAddress').replace('.', '-')
     prefix += '.' + '.'.join(['peerstats', peer])
     to_send = dict_to_carbon(peerstats_dict, prefix)
-    send_msg('\n'.join(to_send) + '\n',server,port)
+    send_msg('\n'.join(to_send) + '\n', server, port)
 
 
 def rawstats(string, prefix, server, port):
-    '''Parse rawstats statistics'''
+    """Parse rawstats statistics"""
     rawstats_dict = stats_to_dict(string, config.rawstats_list)
     rawstats_dict.pop('destinationAddress')
     source = rawstats_dict.pop('sourceAddress').replace('.', '-')
     prefix += '.' + '.'.join(['rawstats', source])
     to_send = dict_to_carbon(rawstats_dict, prefix)
-    send_msg('\n'.join(to_send) + '\n',server,port)
+    send_msg('\n'.join(to_send) + '\n', server, port)
 
 
 def sysstats(string, prefix, server, port):
-    '''Parse sysstats statistics'''
+    """Parse sysstats statistics"""
     prefix += '.sysstats'
     sysstats_dict = stats_to_dict(string, config.sysstats_list)
     to_send = dict_to_carbon(sysstats_dict, prefix)
-    send_msg('\n'.join(to_send) + '\n',server,port)
+    send_msg('\n'.join(to_send) + '\n', server, port)
 
 
 class EventProcessor(pyinotify.ProcessEvent):

@@ -10,7 +10,6 @@ loopstats_list = [
     'clockDisciplineLoopTimeConstant'
 ]
 
-
 peerstats_list = [
     'date',
     'timePastMidnight',
@@ -22,7 +21,6 @@ peerstats_list = [
     'rmsJitter'
 ]
 
-
 rawstats_list = [
     'date',
     'timePastMidnight',
@@ -33,7 +31,6 @@ rawstats_list = [
     'transmitTimestamp',
     'destinationTimestamp'
 ]
-
 
 sysstats_list = [
     'date',
