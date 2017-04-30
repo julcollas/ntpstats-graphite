@@ -13,6 +13,6 @@ setup(
     keywords='ntp graphite',
     author='Julien',
     entry_points={'console_scripts':
-                  ['ntpstats-graphite-poller = ntpstats_graphite.cli:run']},
-    install_requires=['pyinotify'],
+        ['ntpstats-graphite-poller = ntpstats_graphite.cli:main']},
+    install_requires=['pyinotify','click'],
 )

@@ -4,21 +4,47 @@ Dependencies
 -----------
 
 - pyinotify
+- click
 
 Quick start
 -----------
 
-# ntpstats-graphite-poller -h
-Usage: ntpstats-graphite-poller [options]
+        # ntpstats-graphite-poller --help
+        Usage: ntpstats-graphite-poller [OPTIONS] COMMAND [ARGS]...
 
-Options:
-  -h, --help            show this help message and exit
-  -P PATH, --path=PATH  ntpstats directory, Default: /var/log/ntpstats
-  -d, --debug           Debug, Default: False
-  -p PREFIX, --prefix=PREFIX
-                        Graphite prefix, Default: ntpstats
+        Options:
+          --debug / --no-debug  debugging output
+          --prefix TEXT         Graphite prefix
+          --server TEXT         carbon server address
+          --port INTEGER        carbon server port
+          --help                Show this message and exit.
 
+        Commands:
+          inotify
+          oneshot
 
- # export CARBON_SERVER=graphite_server
- # export CARBON_PORT=2003
- # ntpstats-graphite-poller -p graphite.prefix -P /path/to/ntpstats -d
+        # ntpstats-graphite-poller inotify --help
+        Usage: ntpstats-graphite-poller inotify [OPTIONS]
+
+        Options:
+          --path PATH  Path to ntpstats directory
+          --help       Show this message and exit.
+
+        # ntpstats-graphite-poller oneshot --help
+        Usage: ntpstats-graphite-poller oneshot [OPTIONS]
+
+        Options:
+          --loopstats PATH
+          --peerstats PATH
+          --rawstats PATH
+          --sysstats PATH
+          --help            Show this message and exit.
+
+Using `ntpstats-graphite-poller` with inotify, watching for changes:
+
+      # ntpstats-graphite-poller --server="graphite_server" --port=2003 --prefix="ntpstats.server" inotify
+
+or in the oneshot mode for timed execution
+
+      # ntpstats-graphite-poller --server="graphite_server" --port=2003 --prefix="ntpstats.server" oneshot
+    

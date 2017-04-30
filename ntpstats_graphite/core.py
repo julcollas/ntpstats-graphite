@@ -4,6 +4,7 @@ import pyinotify
 import datetime
 import calendar
 import socket
+import logging
 
 
 def mjd_to_timestamp(mjd, pastmidnight):
@@ -28,12 +29,12 @@ def get_peer_tallycode(statusWord):
 def stats_to_dict(string, input_list):
     '''Return a dict from a single ntpstats line and a matching list'''
     ret_val = False
-    if len(string.split(' ')) == len(input_list):
-        ret_val = dict(zip(input_list, string.split(' ')))
+    if len(string.split(' ')) >= len(input_list):
+        ret_val = dict(zip(input_list, string.split(' ')[:len(input_list)]))
     return ret_val
 
 
-def dict_to_carbon(stats_dict, prefix, debug):
+def dict_to_carbon(stats_dict, prefix):
     '''Return a formated carbon input from a dict and prefix'''
     date = stats_dict.pop('date')
     timePastMidnight = stats_dict.pop('timePastMidnight')
@@ -44,61 +45,59 @@ def dict_to_carbon(stats_dict, prefix, debug):
         metric = '.'.join([prefix, item])
         lines.append('%s %s %s' % (metric, stats_dict[item], timestamp))
 
-    if debug is True:
-        print '\n'.join(lines) + '\n'
+    logging.debug('\n'.join(lines) + '\n')
     return lines
 
 
-def send_msg(message):
+def send_msg(message,server,port):
     '''Send message to carbon'''
     sock = socket.socket()
-    sock.connect((config.CARBON_SERVER, int(config.CARBON_PORT)))
+    sock.connect((server,port))
     sock.sendall(message)
     sock.close()
 
 
-def loopstats(string, prefix, debug):
+def loopstats(string, prefix, server, port):
     '''Parse loopstats statistics'''
     prefix += '.loopstats'
     loopstats_dict = stats_to_dict(string, config.loopstats_list)
-    to_send = dict_to_carbon(loopstats_dict, prefix, debug)
-    send_msg('\n'.join(to_send) + '\n')
+    to_send = dict_to_carbon(loopstats_dict, prefix)
+    send_msg('\n'.join(to_send) + '\n',server,port)
 
 
-def peerstats(string, prefix, debug):
+def peerstats(string, prefix, server, port):
     '''Parse peerstats statistics'''
     peerstats_dict = stats_to_dict(string, config.peerstats_list)
     tallycode = get_peer_tallycode(peerstats_dict['statusWord'])
     peerstats_dict['statusWord'] = tallycode
     peer = peerstats_dict.pop('sourceAddress').replace('.', '-')
     prefix += '.' + '.'.join(['peerstats', peer])
-    to_send = dict_to_carbon(peerstats_dict, prefix, debug)
-    send_msg('\n'.join(to_send) + '\n')
+    to_send = dict_to_carbon(peerstats_dict, prefix)
+    send_msg('\n'.join(to_send) + '\n',server,port)
 
 
-def rawstats(string, prefix, debug):
+def rawstats(string, prefix, server, port):
     '''Parse rawstats statistics'''
     rawstats_dict = stats_to_dict(string, config.rawstats_list)
     rawstats_dict.pop('destinationAddress')
     source = rawstats_dict.pop('sourceAddress').replace('.', '-')
     prefix += '.' + '.'.join(['rawstats', source])
-    to_send = dict_to_carbon(rawstats_dict, prefix, debug)
-    send_msg('\n'.join(to_send) + '\n')
+    to_send = dict_to_carbon(rawstats_dict, prefix)
+    send_msg('\n'.join(to_send) + '\n',server,port)
 
 
-def sysstats(string, prefix, debug):
+def sysstats(string, prefix, server, port):
     '''Parse sysstats statistics'''
     prefix += '.sysstats'
     sysstats_dict = stats_to_dict(string, config.sysstats_list)
-    to_send = dict_to_carbon(sysstats_dict, prefix, debug)
-    send_msg('\n'.join(to_send) + '\n')
+    to_send = dict_to_carbon(sysstats_dict, prefix)
+    send_msg('\n'.join(to_send) + '\n',server,port)
 
 
 class EventProcessor(pyinotify.ProcessEvent):
 
-    def __init__(self, prefix, debug):
+    def __init__(self, prefix):
         self.prefix = prefix
-        self.debug = debug
 
     def process_IN_MODIFY(self, event):
         self.file = open(event.pathname)
@@ -106,21 +105,21 @@ class EventProcessor(pyinotify.ProcessEvent):
         lastline = lines[-1].rstrip()
 
         if 'loopstats' in event.pathname:
-            loopstats(lastline, self.prefix, self.debug)
+            loopstats(lastline, self.prefix)
 
         elif 'peerstats' in event.pathname:
-            peerstats(lastline, self.prefix, self.debug)
+            peerstats(lastline, self.prefix)
 
         elif 'rawstats' in event.pathname:
-            rawstats(lastline, self.prefix, self.debug)
+            rawstats(lastline, self.prefix)
 
         elif 'sysstats' in event.pathname:
-            sysstats(lastline, self.prefix, self.debug)
+            sysstats(lastline, self.prefix)
 
 
-def process(path, prefix, debug):
+def process(path, prefix):
     wm = pyinotify.WatchManager()
-    handler = EventProcessor(prefix, debug)
+    handler = EventProcessor(prefix)
     wm.add_watch(path, pyinotify.IN_MODIFY, rec=True)
     notifier = pyinotify.Notifier(wm, handler)
     notifier.loop()

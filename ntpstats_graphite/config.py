@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-from os import environ
-
-CARBON_SERVER = (environ.get('CARBON_SERVER') or 'localhost')
-CARBON_PORT = (environ.get('CARBON_PORT') or 2003)
 
 loopstats_list = [
     'date',
